@@ -1,0 +1,137 @@
+# Docker Compose配置文件 - 火山云节点部署
+# 使用方法：docker-compose -f docker-compose.volcengine.yml up -d
+
+version: '3.8'
+
+services:
+  n8n-volcengine:
+    image: n8nio/n8n:latest
+    container_name: n8n-volcengine
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # 基础认证配置
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=volcengine123
+      
+      # 服务配置
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      
+      # Webhook配置
+      - WEBHOOK_URL=http://localhost:5678/
+      
+      # 自定义节点配置
+      - N8N_CUSTOM_EXTENSIONS=/home/node/.n8n/custom
+      
+      # 日志配置
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console
+      
+      # 安全配置
+      - N8N_SECURE_COOKIE=false
+      - N8N_METRICS=false
+      
+      # 执行配置
+      - EXECUTIONS_PROCESS=main
+      - EXECUTIONS_TIMEOUT=3600
+      - EXECUTIONS_TIMEOUT_MAX=7200
+      
+    volumes:
+      # n8n数据持久化
+      - n8n_data:/home/node/.n8n
+      
+      # 自定义节点挂载（需要手动准备）
+      - ./volcengine-nodes:/home/node/.n8n/custom:ro
+      
+      # 可选：日志挂载
+      - ./logs:/home/node/.n8n/logs
+      
+    networks:
+      - n8n_network
+      
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # 可选：数据库服务（用于生产环境）
+  postgres:
+    image: postgres:13
+    container_name: n8n-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=n8n
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=n8n_password
+      - POSTGRES_NON_ROOT_USER=n8n
+      - POSTGRES_NON_ROOT_PASSWORD=n8n_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - n8n_network
+    profiles:
+      - with-database
+
+  # 可选：Redis服务（用于队列）
+  redis:
+    image: redis:6-alpine
+    container_name: n8n-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - n8n_network
+    profiles:
+      - with-redis
+
+volumes:
+  n8n_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  n8n_network:
+    driver: bridge
+
+# 使用说明：
+# 
+# 1. 基础部署（仅n8n + 火山云节点）：
+#    docker-compose -f docker-compose.volcengine.yml up -d
+#
+# 2. 包含数据库的部署：
+#    docker-compose -f docker-compose.volcengine.yml --profile with-database up -d
+#
+# 3. 完整部署（包含数据库和Redis）：
+#    docker-compose -f docker-compose.volcengine.yml --profile with-database --profile with-redis up -d
+#
+# 4. 停止服务：
+#    docker-compose -f docker-compose.volcengine.yml down
+#
+# 5. 查看日志：
+#    docker-compose -f docker-compose.volcengine.yml logs -f n8n-volcengine
+#
+# 注意事项：
+# - 请确保 ./volcengine-nodes 目录包含构建好的火山云节点文件
+# - 默认用户名：admin，密码：volcengine123
+# - 访问地址：http://localhost:5678
+# - 数据持久化在Docker volumes中，升级时数据不会丢失

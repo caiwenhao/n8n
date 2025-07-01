@@ -1,0 +1,78 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Run tests
+        run: npm test
+        if: success()
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Bump version (if workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: npm version ${{ github.event.inputs.version }}
+        
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## Changes
+            - Updated VolcEngine nodes package
+            
+            ## Installation
+            ```bash
+            npm install n8n-nodes-volcengine
+            ```
+            
+            Or install via n8n Community Nodes:
+            1. Go to Settings > Community Nodes
+            2. Click Install
+            3. Enter: n8n-nodes-volcengine
+            4. Click Install
+          draft: false
+          prerelease: false

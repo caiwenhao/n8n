@@ -1,0 +1,22 @@
+{
+	"node": "n8n-nodes-base.volcEngineEcs",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Cloud Services"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://www.volcengine.com/docs/6291/65568"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://www.volcengine.com/docs/6261/64965"
+			}
+		]
+	},
+	"alias": ["火山云", "VolcEngine", "ECS", "云服务器", "镜像"],
+	"subcategories": {
+		"Cloud Services": ["Compute", "Storage"]
+	}
+}
