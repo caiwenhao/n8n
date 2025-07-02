@@ -11,7 +11,7 @@ import { volcEngineRegions } from '../nodes/VolcEngine/types';
 export class VolcEngineApi implements ICredentialType {
 	name = 'volcEngineApi';
 
-	displayName = '火山云 API';
+	displayName = 'VolcEngine API';
 
 	documentationUrl = 'https://www.volcengine.com/docs/6291/65568';
 
@@ -30,7 +30,7 @@ export class VolcEngineApi implements ICredentialType {
 			type: 'string',
 			required: true,
 			default: '',
-			description: '火山云访问密钥ID，可在火山云控制台的访问控制页面获取',
+			description: 'VolcEngine Access Key ID obtained from VolcEngine Console Access Control page',
 		},
 		{
 			displayName: 'Secret Access Key',
@@ -41,7 +41,7 @@ export class VolcEngineApi implements ICredentialType {
 			},
 			required: true,
 			default: '',
-			description: '火山云私有访问密钥，可在火山云控制台的访问控制页面获取',
+			description: 'VolcEngine Secret Access Key obtained from VolcEngine Console Access Control page',
 		},
 		{
 			displayName: 'Region',
@@ -49,7 +49,7 @@ export class VolcEngineApi implements ICredentialType {
 			type: 'options',
 			options: volcEngineRegions,
 			default: 'cn-beijing',
-			description: '火山云服务地域',
+			description: 'VolcEngine service region',
 		},
 	];
 

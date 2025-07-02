@@ -15,7 +15,7 @@
 			}
 		]
 	},
-	"alias": ["火山云", "VolcEngine", "ECS", "云服务器", "镜像"],
+	"alias": ["VolcEngine", "ECS", "Elastic Compute", "Image", "Cloud Server"],
 	"subcategories": {
 		"Cloud Services": ["Compute", "Storage"]
 	}

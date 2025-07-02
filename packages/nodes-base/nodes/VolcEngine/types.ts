@@ -1,6 +1,6 @@
 import type { IDataObject } from 'n8n-workflow';
 
-// 火山云地域枚举
+// VolcEngine region enumeration
 export enum VolcEngineRegion {
 	CN_BEIJING = 'cn-beijing',
 	CN_SHANGHAI = 'cn-shanghai',
@@ -14,7 +14,7 @@ export enum VolcEngineRegion {
 	US_WEST_2 = 'us-west-2',
 }
 
-// 火山云地域选项（用于UI显示）
+// VolcEngine region options (for UI display)
 export const volcEngineRegions = [
 	{
 		name: '华北2（北京）- cn-beijing',
@@ -49,16 +49,16 @@ export const volcEngineRegions = [
 		value: VolcEngineRegion.AP_TOKYO,
 	},
 	{
-		name: '美国东部1（弗吉尼亚）- us-east-1',
+		name: 'US East 1 (Virginia) - us-east-1',
 		value: VolcEngineRegion.US_EAST_1,
 	},
 	{
-		name: '美国西部2（俄勒冈）- us-west-2',
+		name: 'US West 2 (Oregon) - us-west-2',
 		value: VolcEngineRegion.US_WEST_2,
 	},
 ];
 
-// 火山云凭据接口
+// VolcEngine credentials interface
 export interface IVolcEngineCredentials {
 	accessKeyId: string;
 	secretAccessKey: string;
@@ -91,7 +91,45 @@ export interface ICopyImageResponse {
 	};
 }
 
-// 火山云API错误响应接口
+// DescribeTasks请求接口
+export interface IDescribeTasksRequest {
+	Action: 'DescribeTasks';
+	Version: '2020-04-01';
+	MaxResults?: number;
+	NextToken?: string;
+	ResourceId?: string;
+	ResourceIds?: string[];
+	TaskIds?: string[];
+}
+
+// DescribeTasks响应接口
+export interface IDescribeTasksResponse {
+	ResponseMetadata: {
+		RequestId: string;
+		Action: string;
+		Version: string;
+		Service: string;
+		Region: string;
+	};
+	Result: {
+		NextToken: string;
+		Tasks: ITaskInfo[];
+	};
+}
+
+// 任务信息接口
+export interface ITaskInfo {
+	Id: string;
+	CreatedAt: string;
+	UpdatedAt: string;
+	EndAt: string;
+	ResourceId: string;
+	Type: string;
+	Process: number;
+	Status: string;
+}
+
+// VolcEngine API error response interface
 export interface IVolcEngineErrorResponse {
 	ResponseMetadata: {
 		RequestId: string;
@@ -106,7 +144,7 @@ export interface IVolcEngineErrorResponse {
 	};
 }
 
-// 火山云错误码枚举
+// VolcEngine error code enumeration
 export enum VolcEngineErrorCode {
 	INVALID_ARGUMENT = 'InvalidArgument',
 	INVALID_DESCRIPTION_MALFORMED = 'InvalidDescription.Malformed',
@@ -128,7 +166,7 @@ export enum VolcEngineErrorCode {
 	INTERNAL_ERROR = 'InternalError',
 }
 
-// 火山云API通用响应接口
+// VolcEngine API common response interface
 export interface IVolcEngineApiResponse extends IDataObject {
 	ResponseMetadata: {
 		RequestId: string;
@@ -144,7 +182,7 @@ export interface IVolcEngineApiResponse extends IDataObject {
 	Result?: IDataObject;
 }
 
-// 火山云API请求参数接口
+// VolcEngine API request parameters interface
 export interface IVolcEngineApiRequest extends IDataObject {
 	Action: string;
 	Version: string;
@@ -164,7 +202,7 @@ export interface IVolcEngineSignatureOptions {
 	timestamp: string;
 }
 
-// 火山云服务枚举
+// VolcEngine service enumeration
 export enum VolcEngineService {
 	ECS = 'ecs',
 	RDS = 'rds',

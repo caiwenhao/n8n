@@ -1,8 +1,8 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { volcEngineRegions } from '../types';
 
-// CopyImage操作配置
-export const copyImageOperation: INodeProperties = {
+// Image操作配置
+export const imageOperation: INodeProperties = {
 	displayName: 'Operation',
 	name: 'operation',
 	type: 'options',
@@ -17,7 +17,13 @@ export const copyImageOperation: INodeProperties = {
 			name: 'Copy',
 			value: 'copy',
 			action: 'Copy an image across regions',
-			description: '跨地域复制镜像',
+			description: 'Copy an image across regions',
+		},
+		{
+			name: 'Describe Tasks',
+			value: 'describeTasks',
+			action: 'Query task progress',
+			description: 'Query the progress of asynchronous tasks',
 		},
 	],
 	default: 'copy',
@@ -26,7 +32,7 @@ export const copyImageOperation: INodeProperties = {
 // CopyImage操作字段配置
 export const copyImageFields: INodeProperties[] = [
 	{
-		displayName: '源镜像ID',
+		displayName: 'Source Image ID',
 		name: 'imageId',
 		type: 'string',
 		required: true,
@@ -38,19 +44,10 @@ export const copyImageFields: INodeProperties[] = [
 		},
 		default: '',
 		placeholder: 'image-xxxxxxxxxxxxxx',
-		description: '要复制的源自定义镜像ID，格式如：image-xxxxxxxxxxxxxx',
-		validation: [
-			{
-				type: 'regex',
-				properties: {
-					regex: '^image-[a-zA-Z0-9]{14}$',
-					errorMessage: '镜像ID格式不正确，应为：image-xxxxxxxxxxxxxx',
-				},
-			},
-		],
+		description: 'Source custom image ID to copy, format: image-xxxxxxxxxxxxxx',
 	},
 	{
-		displayName: '目标地域',
+		displayName: 'Destination Region',
 		name: 'destinationRegion',
 		type: 'options',
 		required: true,
@@ -62,10 +59,10 @@ export const copyImageFields: INodeProperties[] = [
 		},
 		options: volcEngineRegions,
 		default: 'cn-shanghai',
-		description: '目标镜像所在地域，不能与源镜像地域相同',
+		description: 'Target region for the image, cannot be the same as source region',
 	},
 	{
-		displayName: '目标镜像名称',
+		displayName: 'Target Image Name',
 		name: 'imageName',
 		type: 'string',
 		required: true,
@@ -77,19 +74,11 @@ export const copyImageFields: INodeProperties[] = [
 		},
 		default: '',
 		placeholder: 'my-copied-image',
-		description: '目标自定义镜像名称，长度限制为1-128个字符',
-		validation: [
-			{
-				type: 'regex',
-				properties: {
-					regex: '^[\\u4e00-\\u9fa5a-zA-Z0-9._-]{1,128}$',
-					errorMessage: '镜像名称只能包含中文、字母、数字、下划线、中划线、英文句号，长度1-128个字符',
-				},
-			},
-		],
+		description: 'Target custom image name, length limit: 1-128 characters',
+
 	},
 	{
-		displayName: '镜像描述',
+		displayName: 'Image Description',
 		name: 'description',
 		type: 'string',
 		displayOptions: {
@@ -99,20 +88,12 @@ export const copyImageFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		placeholder: '复制的镜像描述',
-		description: '目标镜像描述，不填默认与源自定义镜像一致，长度限制为0-255个字符',
-		validation: [
-			{
-				type: 'regex',
-				properties: {
-					regex: '^[\\u4e00-\\u9fa5a-zA-Z0-9._\\-=,，。\\s]{0,255}$',
-					errorMessage: '描述只能包含中文、字母、数字、下划线、中划线、等号、逗号、句号和空格，长度0-255个字符',
-				},
-			},
-		],
+		placeholder: 'Copied image description',
+		description: 'Target image description, defaults to source image description if empty, length limit: 0-255 characters',
+
 	},
 	{
-		displayName: '复制镜像标签',
+		displayName: 'Copy Image Tags',
 		name: 'copyImageTags',
 		type: 'boolean',
 		displayOptions: {
@@ -122,10 +103,10 @@ export const copyImageFields: INodeProperties[] = [
 			},
 		},
 		default: false,
-		description: '是否复制源镜像标签到目标镜像',
+		description: 'Whether to copy source image tags to target image',
 	},
 	{
-		displayName: '项目名称',
+		displayName: 'Project Name',
 		name: 'projectName',
 		type: 'string',
 		displayOptions: {
@@ -136,11 +117,103 @@ export const copyImageFields: INodeProperties[] = [
 		},
 		default: '',
 		placeholder: 'default',
-		description: '镜像所属项目，如果调用接口账号仅拥有部分项目权限，本参数必填',
+		description: 'Project name for the image, required if account has limited project permissions',
+	},
+];
+// DescribeTasks操作字段配置
+export const describeTasksFields: INodeProperties[] = [
+	{
+		displayName: 'Query Type',
+		name: 'queryType',
+		type: 'options',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['image'],
+				operation: ['describeTasks'],
+			},
+		},
+		options: [
+			{
+				name: 'By Task IDs',
+				value: 'taskIds',
+				description: 'Query tasks by task IDs',
+			},
+			{
+				name: 'By Resource IDs',
+				value: 'resourceIds',
+				description: 'Query tasks by resource IDs',
+			},
+		],
+		default: 'taskIds',
+		description: 'Choose how to query tasks',
+	},
+	{
+		displayName: 'Task IDs',
+		name: 'taskIds',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['image'],
+				operation: ['describeTasks'],
+				queryType: ['taskIds'],
+			},
+		},
+		default: '',
+		placeholder: 't-ybnz9qci2sahiqdl1234, t-ybnz9qci2sahiqdl5678',
+		description: 'Comma-separated task IDs (maximum 100). You can get task IDs from CopyImage, ExportImage operations.',
+	},
+	{
+		displayName: 'Resource IDs',
+		name: 'resourceIds',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['image'],
+				operation: ['describeTasks'],
+				queryType: ['resourceIds'],
+			},
+		},
+		default: '',
+		placeholder: 'image-ebgy1og99tfct0gw1234, image-ebgy1og99tfct0gw5678',
+		description: 'Comma-separated resource IDs (maximum 100). Usually image IDs.',
+	},
+	{
+		displayName: 'Max Results',
+		name: 'maxResults',
+		type: 'number',
+		displayOptions: {
+			show: {
+				resource: ['image'],
+				operation: ['describeTasks'],
+			},
+		},
+		default: 20,
+		typeOptions: {
+			minValue: 1,
+			maxValue: 100,
+		},
+		description: 'Maximum number of results per page (1-100, default: 20)',
+	},
+	{
+		displayName: 'Next Token',
+		name: 'nextToken',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['image'],
+				operation: ['describeTasks'],
+			},
+		},
+		default: '',
+		placeholder: '3tiegs1y963vj0******',
+		description: 'Pagination token for retrieving the next page of results',
 	},
 ];
 
-// 镜像资源配置
+// Image resource configuration
 export const imageResource: INodeProperties = {
 	displayName: 'Resource',
 	name: 'resource',
@@ -150,7 +223,7 @@ export const imageResource: INodeProperties = {
 		{
 			name: 'Image',
 			value: 'image',
-			description: '镜像管理',
+			description: 'Image management',
 		},
 	],
 	default: 'image',

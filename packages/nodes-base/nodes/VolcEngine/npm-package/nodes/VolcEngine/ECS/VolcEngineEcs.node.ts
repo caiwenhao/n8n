@@ -7,20 +7,20 @@ import type {
 import { NodeConnectionType } from 'n8n-workflow';
 
 import { volcEngineApiRequest } from '../GenericFunctions';
-import { imageResource, copyImageOperation, copyImageFields } from './ImageDescription';
-import type { ICopyImageRequest, ICopyImageResponse } from '../types';
+import { imageResource, imageOperation, copyImageFields, describeTasksFields } from './ImageDescription';
+import type { ICopyImageRequest, ICopyImageResponse, IDescribeTasksRequest, IDescribeTasksResponse } from '../types';
 
 export class VolcEngineEcs implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: '火山云 ECS',
+		displayName: 'VolcEngine ECS',
 		name: 'volcEngineEcs',
 		icon: 'file:ecs.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: '火山云弹性计算服务（ECS）操作',
+		description: 'Interact with VolcEngine Elastic Compute Service (ECS)',
 		defaults: {
-			name: '火山云 ECS',
+			name: 'VolcEngine ECS',
 		},
 		inputs: [NodeConnectionType.Main],
 		outputs: [NodeConnectionType.Main],
@@ -38,8 +38,9 @@ export class VolcEngineEcs implements INodeType {
 		},
 		properties: [
 			imageResource,
-			copyImageOperation,
+			imageOperation,
 			...copyImageFields,
+			...describeTasksFields,
 		],
 	};
 
@@ -100,6 +101,77 @@ export class VolcEngineEcs implements INodeType {
 							targetRegion: destinationRegion,
 							targetImageName: imageName,
 							message: `镜像复制成功，目标镜像ID: ${responseData.Result.ImageId}`,
+						};
+
+						returnData.push({
+							json: result,
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'describeTasks') {
+						// 获取参数
+						const queryType = this.getNodeParameter('queryType', i) as string;
+						const maxResults = this.getNodeParameter('maxResults', i, 20) as number;
+						const nextToken = this.getNodeParameter('nextToken', i, '') as string;
+
+						// 构建请求参数
+						const requestBody: Partial<IDescribeTasksRequest> = {
+							MaxResults: maxResults,
+						};
+
+						// 添加分页token
+						if (nextToken) {
+							requestBody.NextToken = nextToken;
+						}
+
+						// 根据查询类型添加相应参数
+						if (queryType === 'taskIds') {
+							const taskIdsStr = this.getNodeParameter('taskIds', i) as string;
+							const taskIds = taskIdsStr.split(',').map(id => id.trim()).filter(id => id);
+							if (taskIds.length === 0) {
+								throw new Error('At least one task ID is required');
+							}
+							if (taskIds.length > 100) {
+								throw new Error('Maximum 100 task IDs are allowed');
+							}
+							requestBody.TaskIds = taskIds;
+						} else if (queryType === 'resourceIds') {
+							const resourceIdsStr = this.getNodeParameter('resourceIds', i) as string;
+							const resourceIds = resourceIdsStr.split(',').map(id => id.trim()).filter(id => id);
+							if (resourceIds.length === 0) {
+								throw new Error('At least one resource ID is required');
+							}
+							if (resourceIds.length > 100) {
+								throw new Error('Maximum 100 resource IDs are allowed');
+							}
+							requestBody.ResourceIds = resourceIds;
+						}
+
+						// 调用API
+						responseData = await volcEngineApiRequest.call(
+							this,
+							'ecs',
+							'POST',
+							'DescribeTasks',
+							requestBody,
+						) as IDescribeTasksResponse;
+
+						// 格式化返回数据
+						const result = {
+							success: true,
+							requestId: responseData.ResponseMetadata.RequestId,
+							nextToken: responseData.Result.NextToken,
+							tasks: responseData.Result.Tasks.map((task: any) => ({
+								id: task.Id,
+								createdAt: task.CreatedAt,
+								updatedAt: task.UpdatedAt,
+								endAt: task.EndAt,
+								resourceId: task.ResourceId,
+								type: task.Type,
+								progress: task.Process,
+								status: task.Status,
+							})),
+							totalTasks: responseData.Result.Tasks.length,
+							hasMore: !!responseData.Result.NextToken,
 						};
 
 						returnData.push({

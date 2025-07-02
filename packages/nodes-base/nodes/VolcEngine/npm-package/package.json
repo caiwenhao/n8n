@@ -1,16 +1,17 @@
 {
   "name": "n8n-nodes-volcengine",
-  "version": "1.0.0",
-  "description": "n8n community nodes for VolcEngine (火山云) services - ECS, RDS, CDN and more",
+  "version": "1.1.1",
+  "description": "n8n community nodes for VolcEngine services - ECS image management, task monitoring and more cloud automation",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
     "volcengine",
-    "火山云",
     "ecs",
     "cloud",
     "automation",
-    "workflow"
+    "workflow",
+    "image-management",
+    "task-monitoring"
   ],
   "license": "MIT",
   "homepage": "https://github.com/your-username/n8n-nodes-volcengine#readme",

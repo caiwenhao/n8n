@@ -2,7 +2,7 @@
 
 ![n8n.io - Workflow Automation](https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png)
 
-This is an n8n community node package that provides integration with VolcEngine (火山云) services.
+This is an n8n community node package that provides integration with VolcEngine services.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -37,7 +37,11 @@ RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-volcengine
 ## Supported Services
 
 ### ✅ ECS (Elastic Compute Service)
-- **Copy Image**: Cross-region image replication
+- **Copy Image**: Cross-region image replication with full parameter support
+- **Describe Tasks**: Query progress of asynchronous tasks (copy, export, import operations)
+  - Support querying by Task IDs or Resource IDs
+  - Pagination support for large result sets
+  - Real-time task status and progress monitoring
 
 ### 🚧 Coming Soon
 - **RDS**: Database management

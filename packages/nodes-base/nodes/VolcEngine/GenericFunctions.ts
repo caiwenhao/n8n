@@ -19,7 +19,7 @@ import type {
 } from './types';
 
 /**
- * 火山云API请求函数
+ * VolcEngine API request function
  */
 export async function volcEngineApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -72,7 +72,7 @@ export async function volcEngineApiRequest(
 }
 
 /**
- * 添加火山云签名认证
+ * Add VolcEngine signature authentication
  */
 async function addVolcEngineSignature(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -200,7 +200,7 @@ function calculateSignature(
 }
 
 /**
- * 解析火山云API响应
+ * Parse VolcEngine API response
  */
 function parseVolcEngineResponse(response: any): IVolcEngineApiResponse {
 	// 如果响应是字符串，尝试解析为JSON
@@ -222,7 +222,7 @@ function parseVolcEngineResponse(response: any): IVolcEngineApiResponse {
 }
 
 /**
- * 解析火山云错误响应
+ * Parse VolcEngine error response
  */
 export function parseVolcEngineError(error: any): Error {
 	if (error.response?.data?.ResponseMetadata?.Error) {
